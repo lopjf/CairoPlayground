@@ -7,10 +7,14 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.token.erc1155.library import ERC1155
 from openzeppelin.introspection.erc165.library import ERC165
+from openzeppelin.access.ownable.library import Ownable
 
 @constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    owner: felt
+) {
     ERC1155.initializer('');
+    Ownable.initializer(owner);
     return ();
 }
 
@@ -53,6 +57,11 @@ func isApprovedForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     return ERC1155.is_approved_for_all(account, operator);
 }
 
+@view
+func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
+    return Ownable.owner();
+}
+
 //
 // Externals
 //
@@ -85,5 +94,28 @@ func safeBatchTransferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     data: felt*,
 ) {
     ERC1155.safe_batch_transfer_from(from_, to, ids_len, ids, values_len, values, data_len, data);
+    return ();
+}
+
+@external
+func setURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    uri: felt
+) {
+    Ownable.assert_only_owner();
+    ERC1155._set_uri(uri);
+    return ();
+}
+
+@external
+func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    newOwner: felt
+) {
+    Ownable.transfer_ownership(newOwner);
+    return ();
+}
+
+@external
+func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    Ownable.renounce_ownership();
     return ();
 }
